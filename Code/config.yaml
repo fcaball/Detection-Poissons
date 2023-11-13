@@ -1,0 +1,6 @@
+path: /home/marie/Desktop/Projet Image/Code/data
+train: images/train
+val: images/validation
+
+names:
+  0: fish
