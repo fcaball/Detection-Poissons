@@ -9,9 +9,9 @@ def mean_images(video, nb_images):
         ret, frame = cap.read()
         if ret is False:
             break
-        image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        image = cv2.GaussianBlur(image, (5, 5), 0)
-        image = cv2.equalizeHist(image)
+        #image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        image = cv2.GaussianBlur(frame, (5, 5), 0)
+        #image = cv2.equalizeHist(image)
         images.append(image)
     images = np.array(images)
     cap.release()
@@ -19,13 +19,13 @@ def mean_images(video, nb_images):
 
 
 def compute_mask(image, background, threshold):
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    height, width = gray_image.shape
+    #gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    height, width = image.shape
     mask = np.zeros([height, width], np.uint8)
-    gray_image = gray_image.astype(np.uint32)
+    image = image.astype(np.uint32)
     for i in range(height):
         for j in range(width):
-            if abs(background[i][j] - gray_image[i][j])>threshold:
+            if abs(background[i][j] - image[i][j])>threshold:
                 mask[i][j] = 255
     kernel=np.ones((5, 5), np.uint8)
     mask=cv2.erode(mask, kernel, iterations=1)
@@ -33,10 +33,53 @@ def compute_mask(image, background, threshold):
     return mask
 
 
-video = "videos/poissons1.mp4"
-threshold = 60
+def detecter_vegetation_sous_marine(image_path, bloc_size, c):
+    # Charger l'image
+    image = cv2.imread(image_path)
+
+    # Convertir l'image en niveaux de gris
+    gris = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Filtrer par couleur (dans l'espace HSV)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    masque_couleur = cv2.inRange(hsv, (30, 40, 40), (90, 255, 255))
+
+    # Filtrer par texture (utilisation du filtre de Laplace)
+    laplacien = cv2.Laplacian(gris, cv2.CV_64F)
+    laplacien_positif = np.maximum(laplacien, 0)
+
+    # Binarisation adaptative pour la texture
+    masque_texture = cv2.adaptiveThreshold(
+        laplacien_positif.astype(np.uint8),
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        bloc_size,
+        c
+    )
+
+    # Combiner les masques de couleur et de texture
+    masque_combine = cv2.bitwise_and(masque_couleur, masque_texture)
+
+    # Appliquer le masque combiné à l'image originale
+    resultat = cv2.bitwise_and(image, image, mask=masque_combine)
+
+    # Enregistrer l'image résultante
+    return resultat
+
+
+video = "videos/poissons6.mp4"
+threshold = 300
 
 background = mean_images(video, 500)
+cv2.imwrite('background.png', background)
+
+background_vegetation = detecter_vegetation_sous_marine('background.png', 11, 10)
+
+new_background = background - background_vegetation
+cv2.imwrite('new_background.png', new_background)
+grey_background = cv2.imread('new_background.png')
+grey_background = cv2.cvtColor(grey_background, cv2.COLOR_BGR2GRAY)
 
 # cv2.imshow('background', background.astype(np.uint8))
 # cv2.waitKey(0)
@@ -45,13 +88,20 @@ cap = cv2.VideoCapture(video)
 
 while True:
     ret, frame = cap.read()
-    mask = compute_mask(frame, background, threshold)
+    cv2.imwrite('powbel/frame.png', frame)
+    frame_vegetation = detecter_vegetation_sous_marine('powbel/frame.png', 11, 10)
+    new_frame = frame - frame_vegetation
+    cv2.imwrite('powbel/new_frame.png', new_frame)
+    grey_frame = cv2.imread('powbel/new_frame.png')
+    grey_frame = cv2.cvtColor(grey_frame, cv2.COLOR_BGR2GRAY)
+    mask = compute_mask(grey_frame, grey_background, threshold)
     contours=cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
     for c in contours:
-        #cv2.drawContours(frame, contours, -1, (0, 255, 0), 2)  # -1 pour dessiner tous les contours
-        ((x, y), rayon)=cv2.minEnclosingCircle(c)
-        if rayon>20:
-            cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), 10)
+        area = cv2.contourArea(c)
+        cv2.drawContours(frame, contours, -1, (0, 255, 0), 2)  # -1 pour dessiner tous les contours
+        # ((x, y), rayon)=cv2.minEnclosingCircle(c)
+        # if rayon>20:
+        #     cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), 10)
     cv2.imshow('video', frame)
     cv2.imshow('mask', mask)
     key=cv2.waitKey(1)&0xFF
