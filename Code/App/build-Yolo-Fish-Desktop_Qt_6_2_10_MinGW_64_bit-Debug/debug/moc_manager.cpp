@@ -22,8 +22,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_Manager_t {
-    uint offsetsAndSizes[30];
-    char stringdata0[119];
+    uint offsetsAndSizes[36];
+    char stringdata0[150];
 };
 #define QT_MOC_LITERAL(ofs, len) \
     uint(sizeof(qt_meta_stringdata_Manager_t::offsetsAndSizes) + ofs), len 
@@ -32,21 +32,25 @@ static const qt_meta_stringdata_Manager_t qt_meta_stringdata_Manager = {
         QT_MOC_LITERAL(0, 7),  // "Manager"
         QT_MOC_LITERAL(8, 7),  // "nettete"
         QT_MOC_LITERAL(16, 0),  // ""
-        QT_MOC_LITERAL(17, 9),  // "contraste"
-        QT_MOC_LITERAL(27, 14),  // "retrodiffusion"
-        QT_MOC_LITERAL(42, 15),  // "by_soustraction"
-        QT_MOC_LITERAL(58, 4),  // "yolo"
-        QT_MOC_LITERAL(63, 6),  // "median"
-        QT_MOC_LITERAL(70, 4),  // "path"
-        QT_MOC_LITERAL(75, 4),  // "mean"
-        QT_MOC_LITERAL(80, 5),  // "histo"
-        QT_MOC_LITERAL(86, 5),  // "light"
-        QT_MOC_LITERAL(92, 8),  // "proccess"
-        QT_MOC_LITERAL(101, 7),  // "program"
-        QT_MOC_LITERAL(109, 9)   // "arguments"
+        QT_MOC_LITERAL(17, 4),  // "path"
+        QT_MOC_LITERAL(22, 9),  // "contraste"
+        QT_MOC_LITERAL(32, 14),  // "retrodiffusion"
+        QT_MOC_LITERAL(47, 15),  // "by_soustraction"
+        QT_MOC_LITERAL(63, 5),  // "seuil"
+        QT_MOC_LITERAL(69, 4),  // "yolo"
+        QT_MOC_LITERAL(74, 9),  // "nb_epochs"
+        QT_MOC_LITERAL(84, 6),  // "median"
+        QT_MOC_LITERAL(91, 4),  // "mean"
+        QT_MOC_LITERAL(96, 14),  // "taille_fenetre"
+        QT_MOC_LITERAL(111, 5),  // "histo"
+        QT_MOC_LITERAL(117, 5),  // "light"
+        QT_MOC_LITERAL(123, 8),  // "proccess"
+        QT_MOC_LITERAL(132, 7),  // "program"
+        QT_MOC_LITERAL(140, 9)   // "arguments"
     },
-    "Manager\0nettete\0\0contraste\0retrodiffusion\0"
-    "by_soustraction\0yolo\0median\0path\0mean\0"
+    "Manager\0nettete\0\0path\0contraste\0"
+    "retrodiffusion\0by_soustraction\0seuil\0"
+    "yolo\0nb_epochs\0median\0mean\0taille_fenetre\0"
     "histo\0light\0proccess\0program\0arguments"
 };
 #undef QT_MOC_LITERAL
@@ -65,28 +69,28 @@ static const uint qt_meta_data_Manager[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags, initial metatype offsets
-       1,    0,   74,    2, 0x0a,    1 /* Public */,
-       3,    0,   75,    2, 0x0a,    2 /* Public */,
-       4,    0,   76,    2, 0x0a,    3 /* Public */,
-       5,    0,   77,    2, 0x0a,    4 /* Public */,
-       6,    0,   78,    2, 0x0a,    5 /* Public */,
-       7,    1,   79,    2, 0x0a,    6 /* Public */,
-       9,    1,   82,    2, 0x0a,    8 /* Public */,
-      10,    1,   85,    2, 0x0a,   10 /* Public */,
-      11,    1,   88,    2, 0x0a,   12 /* Public */,
-      12,    2,   91,    2, 0x0a,   14 /* Public */,
+       1,    1,   74,    2, 0x0a,    1 /* Public */,
+       4,    0,   77,    2, 0x0a,    3 /* Public */,
+       5,    0,   78,    2, 0x0a,    4 /* Public */,
+       6,    2,   79,    2, 0x0a,    5 /* Public */,
+       8,    2,   84,    2, 0x0a,    8 /* Public */,
+      10,    1,   89,    2, 0x0a,   11 /* Public */,
+      11,    2,   92,    2, 0x0a,   13 /* Public */,
+      13,    1,   97,    2, 0x0a,   16 /* Public */,
+      14,    1,  100,    2, 0x0a,   18 /* Public */,
+      15,    2,  103,    2, 0x0a,   20 /* Public */,
 
  // slots: parameters
+    QMetaType::Void, QMetaType::QString,    3,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void, QMetaType::QString,    8,
-    QMetaType::Void, QMetaType::QString,    8,
-    QMetaType::Void, QMetaType::QString,    8,
-    QMetaType::Void, QMetaType::QString,    8,
-    QMetaType::Void, QMetaType::QString, QMetaType::QStringList,   13,   14,
+    QMetaType::Void, QMetaType::QString, QMetaType::QString,    7,    3,
+    QMetaType::Void, QMetaType::QString, QMetaType::QString,    9,    3,
+    QMetaType::Void, QMetaType::QString,    3,
+    QMetaType::Void, QMetaType::QString, QMetaType::QString,    3,   12,
+    QMetaType::Void, QMetaType::QString,    3,
+    QMetaType::Void, QMetaType::QString,    3,
+    QMetaType::Void, QMetaType::QString, QMetaType::QStringList,   16,   17,
 
        0        // eod
 };
@@ -97,13 +101,13 @@ void Manager::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, voi
         auto *_t = static_cast<Manager *>(_o);
         (void)_t;
         switch (_id) {
-        case 0: _t->nettete(); break;
+        case 0: _t->nettete((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
         case 1: _t->contraste(); break;
         case 2: _t->retrodiffusion(); break;
-        case 3: _t->by_soustraction(); break;
-        case 4: _t->yolo(); break;
+        case 3: _t->by_soustraction((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[2]))); break;
+        case 4: _t->yolo((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[2]))); break;
         case 5: _t->median((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
-        case 6: _t->mean((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 6: _t->mean((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[2]))); break;
         case 7: _t->histo((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
         case 8: _t->light((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
         case 9: _t->proccess((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<QStringList>>(_a[2]))); break;
@@ -120,7 +124,7 @@ const QMetaObject Manager::staticMetaObject = { {
     nullptr,
 qt_incomplete_metaTypeArray<qt_meta_stringdata_Manager_t
 , QtPrivate::TypeAndForceComplete<Manager, std::true_type>
-, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<QStringList, std::false_type>
+, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QString, std::false_type>, QtPrivate::TypeAndForceComplete<QStringList, std::false_type>
 
 
 >,

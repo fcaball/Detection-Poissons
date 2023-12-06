@@ -1,5 +1,5 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="/Yolo-Fish">
-<file alias="main.qml">C:/Users/fabien/Desktop/App/Yolo-Fish/main.qml</file>
+<file alias="main.qml">C:/Users/fabien/Documents/M2/Projet-Image/Detection-Poissons/Code/App/Yolo-Fish/main.qml</file>
 </qresource>
 </RCC>

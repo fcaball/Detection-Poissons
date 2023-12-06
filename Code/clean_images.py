@@ -29,6 +29,17 @@ def light_equalize(image, clip_limit, tile_grid_size):
     equalized_image = cv2.cvtColor(equalized_image, cv2.COLOR_LAB2BGR)
     return equalized_image
 
+def sharpen_image(image):
+    # Création du noyau de filtre de netteté
+    kernel = np.array([[-1, -1, -1],
+                       [-1, 9, -1],
+                       [-1, -1, -1]])
+
+    # Application du filtre de netteté à l'image
+    sharpened = cv2.filter2D(image, -1, kernel)
+
+    return sharpened
+
 import os
 
 def extract_frames(video_path):
@@ -55,14 +66,17 @@ for img in extracted_frames:
         image=median_filter(img, 3)
         finalframes.append(image)
     elif( sys.argv[1]=='mean'):
-        image=mean_filter(img, (3,3))
+        image=mean_filter(img, (int(sys.argv[4]), int(sys.argv[4])))
         finalframes.append(image)
     elif( sys.argv[1]=='histo'):
         image=histogram_equalize(img)
         finalframes.append(image)
     elif( sys.argv[1]=='light'):
         image=light_equalize(img, 2.0, (8, 8)) 
-        finalframes.append(image)  
+        finalframes.append(image)
+    elif( sys.argv[1]=='nettete'):
+        image=sharpen_image(img) 
+        finalframes.append(image)    
 
 
 def create_video(frames, output_path, fps=30.0):

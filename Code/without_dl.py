@@ -1,6 +1,9 @@
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+import sys
+
+
 
 def mean_images(video, nb_images):
     cap = cv2.VideoCapture(video)
@@ -68,8 +71,8 @@ def detecter_vegetation_sous_marine(image_path, bloc_size, c):
     return resultat
 
 
-video = "videos/poissons6.mp4"
-threshold = 300
+video = sys.argv[1]
+threshold = int(sys.argv[3])
 
 background = mean_images(video, 500)
 cv2.imwrite('background.png', background)
@@ -85,34 +88,47 @@ grey_background = cv2.cvtColor(grey_background, cv2.COLOR_BGR2GRAY)
 # cv2.waitKey(0)
 
 cap = cv2.VideoCapture(video)
+ret, frame = cap.read()
+W = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+H = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+out = cv2.VideoWriter(sys.argv[2]+"output_without_dl.mp4", cv2.VideoWriter_fourcc(*'mp4v'), int(cap.get(cv2.CAP_PROP_FPS)), (W, H))
+num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))-1
 
-while True:
+compteur=0
+while compteur<num_frames:
     ret, frame = cap.read()
-    cv2.imwrite('powbel/frame.png', frame)
-    frame_vegetation = detecter_vegetation_sous_marine('powbel/frame.png', 11, 10)
-    new_frame = frame - frame_vegetation
-    cv2.imwrite('powbel/new_frame.png', new_frame)
-    grey_frame = cv2.imread('powbel/new_frame.png')
-    grey_frame = cv2.cvtColor(grey_frame, cv2.COLOR_BGR2GRAY)
-    mask = compute_mask(grey_frame, grey_background, threshold)
-    contours=cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
-    for c in contours:
-        area = cv2.contourArea(c)
-        cv2.drawContours(frame, contours, -1, (0, 255, 0), 2)  # -1 pour dessiner tous les contours
-        # ((x, y), rayon)=cv2.minEnclosingCircle(c)
-        # if rayon>20:
-        #     cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), 10)
-    cv2.imshow('video', frame)
-    cv2.imshow('mask', mask)
-    key=cv2.waitKey(1)&0xFF
-    if key==ord('q'):
-        break
-    if key==ord('p'):
-        threshold+=1
-    if key==ord('m'):
-        threshold-=1
+    if ret and not frame is None:
+        cv2.imwrite('../../powbel/frame.png', frame)
+        frame_vegetation = detecter_vegetation_sous_marine('../../powbel/frame.png', 11, 10)
+        new_frame = frame - frame_vegetation
+        cv2.imwrite('../../powbel/new_frame.png', new_frame)
+        grey_frame = cv2.imread('../../powbel/new_frame.png')
+        grey_frame = cv2.cvtColor(grey_frame, cv2.COLOR_BGR2GRAY)
+        mask = compute_mask(grey_frame, grey_background, threshold)
+        contours=cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+        for c in contours:
+            area = cv2.contourArea(c)
+            cv2.drawContours(frame, contours, -1, (0, 0, 255), 4)  # -1 pour dessiner tous les contours
+            # ((x, y), rayon)=cv2.minEnclosingCircle(c)
+            # if rayon>20:
+            #     cv2.circle(frame, (int(x), int(y)), 5, (0, 0, 255), 10)
+        # cv2.imshow('video', frame)
+        out.write(frame)
+        print(compteur,"/",num_frames)
+        compteur+=1
+
+        # cv2.imshow('mask', mask)
+        key=cv2.waitKey(1)&0xFF
+        if key==ord('q'):
+            break
+        if key==ord('p'):
+            threshold+=1
+        if key==ord('m'):
+            threshold-=1
+    else:
+        print(compteur,"/",num_frames," (nulle)")
+        compteur+=1
 cap.release()
-cv2.destroyAllWindows()
 
 
 

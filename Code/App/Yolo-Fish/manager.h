@@ -15,13 +15,13 @@ public:
 signals:
 
 public slots:
-    void nettete();
+    void nettete(QString path);
     void contraste();
     void retrodiffusion();
-    void by_soustraction();
-    void yolo();
+    void by_soustraction(QString seuil,QString path);
+    void yolo(QString nb_epochs, QString path);
     void median(QString path);
-    void mean(QString path);
+    void mean(QString path, QString taille_fenetre);
     void histo(QString path);
     void light(QString path);
     void proccess(QString program, QStringList arguments);
