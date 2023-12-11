@@ -2,7 +2,24 @@ import cv2
 import os
 import numpy as np
 from matplotlib import pyplot as plt
-#from without_dl import mean_images, compute_mask
+
+
+list_precision_moyenne = []
+list_f1_score_moyen = []
+list_rappel_moyen = []
+list_thresholds = []
+list_accuracy_moyenne = []
+list_etiquettes = ["VP", "FP", "VN", "FN"]
+list_valeurs = []
+
+accuracy_moyenne = 0
+precision_moyenne = 0
+rappel_moyen = 0
+f1_score_moyen = 0
+vp_moyen = 0
+vn_moyen = 0
+fp_moyen = 0
+fn_moyen = 0
 
 def mean_images(video, nb_images):
     cap = cv2.VideoCapture(video)
@@ -11,27 +28,60 @@ def mean_images(video, nb_images):
         ret, frame = cap.read()
         if ret is False:
             break
-        image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        image = cv2.GaussianBlur(image, (5, 5), 0)
-        image = cv2.equalizeHist(image)
+        image = cv2.GaussianBlur(frame, (5, 5), 0)
         images.append(image)
     images = np.array(images)
     cap.release()
     return np.mean(images, axis = 0)
 
+
 def compute_mask(image, background, threshold):
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    height, width = gray_image.shape
+    height, width = image.shape
     mask = np.zeros([height, width], np.uint8)
-    gray_image = gray_image.astype(np.uint32)
+    image = image.astype(np.uint32)
     for i in range(height):
         for j in range(width):
-            if abs(background[i][j] - gray_image[i][j])>threshold:
+            if abs(background[i][j] - image[i][j])>threshold:
                 mask[i][j] = 255
     kernel=np.ones((5, 5), np.uint8)
     mask=cv2.erode(mask, kernel, iterations=1)
     mask=cv2.dilate(mask, kernel, iterations=3)
     return mask
+
+
+def detecter_vegetation_sous_marine(image_path, bloc_size, c):
+    # Charger l'image
+    image = cv2.imread(image_path)
+
+    # Convertir l'image en niveaux de gris
+    gris = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Filtrer par couleur (dans l'espace HSV)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    masque_couleur = cv2.inRange(hsv, (30, 40, 40), (90, 255, 255))
+
+    # Filtrer par texture (utilisation du filtre de Laplace)
+    laplacien = cv2.Laplacian(gris, cv2.CV_64F)
+    laplacien_positif = np.maximum(laplacien, 0)
+
+    # Binarisation adaptative pour la texture
+    masque_texture = cv2.adaptiveThreshold(
+        laplacien_positif.astype(np.uint8),
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        bloc_size,
+        c
+    )
+
+    # Combiner les masques de couleur et de texture
+    masque_combine = cv2.bitwise_and(masque_couleur, masque_texture)
+
+    # Appliquer le masque combiné à l'image originale
+    resultat = cv2.bitwise_and(image, image, mask=masque_combine)
+
+    # Enregistrer l'image résultante
+    return resultat
 
 def get_coord_rectangle(file_path):
     rectangles = []
@@ -70,20 +120,10 @@ def denormalize_coord(coordonnees, width, height):
     coord_denorm = [x_denorm, y_denorm]
     return coord_denorm
 
-def draw_curve(thresholds, accuracies, title, x_label, y_label, plot_save_path):
-    plt.plot(thresholds, accuracies, marker='o', linestyle='-')
-    plt.title(title)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.grid(True)
-    plt.savefig(plot_save_path)
-
 
 labels_path = "labels_video_poissons_6"
 frames_path = "frames_video_poissons_6"
 video_path = "videos/poissons6.mp4"
-plot_save_folder = "analyse_without_dl"
-plot_name_file = "graph_sans_ameliorations_et_threshold.png"
 
 list_labels_paths = []
 list_frames_paths = []
@@ -98,45 +138,32 @@ for filename in frame_files:
     file_path = os.path.join(frames_path, filename)
     list_frames_paths.append(file_path)
 
-background = mean_images(video_path, 500)
-cv2.imwrite("images_pipeline/background.png", background)
-#threshold = 600
-
-list_precision_moyenne = []
-list_f1_score_moyen = []
-list_rappel_moyen = []
-list_thresholds = []
-list_accuracy_moyenne = []
-list_etiquettes = ["VP", "FP", "VN", "FN"]
-list_valeurs = []
-
 nb_images = list(range(len(list_frames_paths)))
-accuracy_moyenne = 0
-precision_moyenne = 0
-rappel_moyen = 0
-f1_score_moyen = 0
-vp_moyen = 0
-vn_moyen = 0
-fp_moyen = 0
-fn_moyen = 0
+
+background = mean_images(video_path, 500)
+cv2.imwrite("background.png", background)
+background_vegetation = detecter_vegetation_sous_marine('background.png', 11, 10)
+cv2.imwrite('background_vege.png', background_vegetation)
+new_background = background - background_vegetation
+cv2.imwrite('new_background.png', new_background)
+grey_background = cv2.imread('new_background.png')
+grey_background = cv2.cvtColor(grey_background, cv2.COLOR_BGR2GRAY)
+
 
 for threshold in range(25, 256, 25):
     print(threshold)
     list_thresholds.append(threshold)
     for label_path, frame_path in zip(list_labels_paths, list_frames_paths):
         print(f"Label path: {label_path}, Frame path: {frame_path}")
-        image = cv2.imread(frame_path)
-        #image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        #cv2.imwrite(f"images_pipeline/frame_{threshold}.png", image_gray)
-        mask = compute_mask(image, background, threshold)
-        cv2.imwrite(f"images_pipeline/mask_{threshold}.png", mask)
-        contours=cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
-
-        for c in contours:
-            ((x, y), rayon)=cv2.minEnclosingCircle(c)
-            if rayon>20:
-                cv2.circle(image, (int(x), int(y)), 5, (0, 0, 255), 10)
-        #cv2.imwrite(f"images_pipeline/image_marquee_{threshold}.png", image)
+        frame = cv2.imread(frame_path)
+        frame_vegetation = detecter_vegetation_sous_marine(frame_path, 11, 10)
+        cv2.imwrite('powbel/frame_vege.png', frame_vegetation)
+        new_frame = frame - frame_vegetation
+        cv2.imwrite('powbel/new_frame.png', new_frame)
+        grey_frame = cv2.imread('powbel/new_frame.png')
+        grey_frame = cv2.cvtColor(grey_frame, cv2.COLOR_BGR2GRAY)
+        mask = compute_mask(grey_frame, grey_background, threshold)
+        cv2.imwrite('powbel/mask.png', mask)
 
         rectangles = get_coord_rectangle(label_path)
 
@@ -146,7 +173,6 @@ for threshold in range(25, 256, 25):
         fn = 0
 
         height, width = mask.shape
-        #print("Taille de l'image = ", width*height)
         for pixel_y in range(height):
             for pixel_x in range(width):
                 pixel = mask[pixel_y, pixel_x]
@@ -162,19 +188,6 @@ for threshold in range(25, 256, 25):
                         vn += 1
                     else:
                         fp += 1
-
-        # print(vp + fp + vn + fn)
-        #taux_vp_sensibilite = (vp / (vp + fn)) * 100
-        # vp_moyen = vp_moyen + vp
-
-        # #taux_vn_specificite = (vn / (vn + fp)) * 100
-        # vn_moyen = vn_moyen + vn
-
-        # #taux_fp = 100 - taux_vn_specificite
-        # fp_moyen = fp_moyen + fp
-
-        # #taux_fn =  100 - taux_vp_sensibilite
-        # fn_moyen = fn_moyen + fn
 
         accuracy = (vp + vn)/ (fp+fn+vp+vn)
         accuracy_moyenne = accuracy_moyenne + accuracy
@@ -218,31 +231,7 @@ for threshold in range(25, 256, 25):
     f1_score_moyen = f1_score_moyen/len(nb_images)
     list_f1_score_moyen.append(f1_score_moyen)
     print("F1 score = ", f1_score_moyen)
-
-
-    # vp_moyen = vp_moyen/len(nb_images)
-    # vn_moyen = vn_moyen/len(nb_images)
-    # fp_moyen = fp_moyen/len(nb_images)
-    # fn_moyen = fn_moyen/len(nb_images)
-    # list_valeurs.append(vp_moyen)
-    # list_valeurs.append(fp_moyen)
-    # list_valeurs.append(vn_moyen)
-    # list_valeurs.append(fn_moyen)
-
-
-    # plt.pie(list_valeurs, labels=list_etiquettes, autopct='%1.1f%%', startangle=90)
-    # plt.title('Répartition des catégories')
-    # plt.savefig(f"analyse_without_dl/camembert_{threshold}.png")
-
-    # list_valeurs.clear()
-
-# plot_save_path = os.path.join(plot_save_folder, plot_name_file)    
-# draw_curve(list_thresholds, list_accuracy_moyenne, 'Accuracy en fonction du seuil', 'Seuil', 'Accuracy', plot_save_path)   
-
-# draw_curve(list_thresholds, list_precision_moyenne, 'Précision en fonction du seuil', 'Seuil', 'Précision', os.path.join(plot_save_folder,"precision_without_ameliorations.png"))
-# draw_curve(list_thresholds, list_rappel_moyen, 'Rappel en fonction du seuil', 'Seuil', 'Rappel', os.path.join(plot_save_folder,"rappel_without_ameliorations.png"))
-# draw_curve(list_thresholds, list_f1_score_moyen, 'F1 score en fonction du seuil', 'Seuil', 'F1 score', os.path.join(plot_save_folder,"f1_score_without_ameliorations.png"))
-
+  
 plt.plot(list_thresholds, list_accuracy_moyenne, color='b', label='Accuracy')
 plt.plot(list_thresholds, list_f1_score_moyen, color='r', label='F1 score')
 plt.plot(list_thresholds, list_rappel_moyen, color = 'g', label='Rappel')
@@ -251,7 +240,4 @@ plt.xlabel('Seuils')
 plt.ylabel('Métriques')
 plt.title('Différentes métriques en fonction du seuil')
 plt.legend()
-plt.savefig("analyse_without_dl/graph_sans_ameliorations.png")
-
-
-
+plt.savefig("analyse_without_dl/graph_avec_ameliorations.png")
